@@ -1,0 +1,267 @@
+procedure draw_ground {} {
+	%fja iscrtava kvadar koji predstavlja tlo i pecurke
+	number a 15
+	number b 10
+	number c 20
+	number inc 1
+	linethickness 4
+	color 30 10 5
+	ang3d_draw_parametric_surface u v 
+	{-a/2; u<=a/2; u+inc}
+	{-c/2; v<=c/2; v+inc}
+	{ u; v; -b}
+	ang3d_draw_parametric_surface u v 
+	{0; u>=-b; u-inc}
+	{-c/2; v<=c/2; v+inc}
+	{ -a/2; v; u}
+	ang3d_draw_parametric_surface u v 
+	{0; u>=-b; u-inc}
+	{-c/2; v<=c/2; v+inc}
+	{ a/2; v; u}
+	ang3d_draw_parametric_surface u v 
+	{0; u>=-b; u-inc}
+	{-a/2; v<=a/2; v+inc}
+	{ v; -c/2; u}
+	ang3d_draw_parametric_surface u v 
+	{0; u>=-b; u-inc}
+	{-a/2; v<=a/2; v+inc}
+	{ v; c/2; u}
+	linethickness 4
+	color 0 140 0
+	ang3d_draw_parametric_surface u v 
+	{-a/2; u<=a/2; u+inc}
+	{-c/2; v<=c/2; v+inc}
+	{ u; v; 0}
+	%crtanje pecurki
+	linethickness 0.5
+	ang3d_point P1 -7 7.5 0 
+	ang3d_point G1 -7 7.5 2
+	ang3d_point P2 7 -7.5 0 
+	ang3d_point G2 7 -7.5 2
+	color 139 69 19
+	drawsegment P1 G1
+	drawsegment P2 G2
+	color 254 254 51
+	ang3d_draw_parametric_surface phi theta
+	{0; phi<=1.57; phi+0.1}
+	{0; theta<=2*3.14; theta+0.1}
+	{sin(phi)*cos(theta)-7; sin(phi)*sin(theta)+7.5; cos(phi) + 2}
+	ang3d_draw_parametric_surface phi theta
+	{0; phi<=1.57; phi+0.1}
+	{0; theta<=2*3.14; theta+0.1}
+	{sin(phi)*cos(theta)+7; sin(phi)*sin(theta)-7.5; cos(phi) + 2}	
+}
+procedure tree { A Tz branch_length_decrease C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+{
+	%provera trenutne duzine grane 
+	%ako je manja od dozvoljene onda je naisao list, inace smo u 
+	%unutrasnjem cvoru
+	if_then_else { Tz < branch_length_limit }
+	{
+		%mesto za crtanje objekata u listovima	
+	}
+	{			
+		% Od tacke A dobija se tacka A1 translacijom za duzinu grane duz Z ose,
+		% zatim se tacka A1 rotira da bi se dobile ostale tacke (A2, A3, A4 i A5).
+		% Tacku A1 treba rotirati oko prave koja je paralelna sa Y osom i sadrzi tacku A.
+		% Ta prava ne sadrzi koord. pocetak zato se prvo radi translacije prave
+		% do koord. pocetrka za vektor AO, potom rotacije oko odgovarajucih osa 
+		% i na kraju inverzna translacija za vektor OA
+		% Sve navedene transformacije objedinjene su u po jednu matricu za svaku
+		% od cetiri nove tacke (u zavisnosti od tipa rotacije i ugla rotacije) i matrice su 
+		% primenjene na ulaznu tacku A.
+		ang3d_getx Ax A
+		ang3d_gety Ay A
+		ang3d_getz Az A
+		
+		%racunanje uglova za rotaciju
+		%uracunati su i ugao grananja i ugao nakrivljenja
+		number theta 0
+		expression theta { (skewness_angle+branching_angle)*3.14/180 }
+		number phi 0
+		expression phi { (skewness_angle-branching_angle)*3.14/180 }
+		
+		%rotacijom oko Y ose za ugao teta dobija se A2
+		number A2x 0
+		number A2y 0
+		number A2z 0
+		expression A2x { cos(theta)*(0) + sin(theta)*(Tz) + Ax}	
+		expression A2y { Ay }
+		expression A2z { -sin(theta)*(0) + cos(theta)*(Tz) + Az}
+		%rotacijom oko Y ose za ugao fi dobija se A3
+		number A3x 0
+		number A3y 0
+		number A3z 0
+		expression A3x { cos(phi)*(0) + sin(phi)*(Tz) + Ax}	
+		expression A3y { Ay }
+		expression A3z { -sin(phi)*(0) + cos(phi)*(Tz) + Az}		
+		%rotacijom oko X ose za ugao teta dobija se A4
+		number A4x 0
+		number A4y 0
+		number A4z 0 
+		expression A4x { Ax }
+		expression A4y { cos(theta)*(0) - sin(theta)*(Tz) + Ay}
+		expression A4z { sin(theta)*(0) + cos(theta)*(Tz) + Az}		
+		%rotacijom oko X ose za ugao fi dobija se A5
+		number A5x 0
+		number A5y 0
+		number A5z 0
+		expression A5x { Ax }
+		expression A5y { cos(phi)*(0) - sin(phi)*(Tz) + Ay}
+		expression A5z { sin(phi)*(0) + cos(phi)*(Tz) + Az}	
+		%formiranje tacaka od dobijenih koordinata
+		ang3d_point A2 A2x A2y A2z
+		ang3d_point A3 A3x A3y A3z
+		ang3d_point A4 A4x A4y A4z
+		ang3d_point A5 A5x A5y A5z
+				
+		%podesavanje parametara za iscrtavanje
+		linethickness line_thickness
+		%ako se crtaju grana do listova boje se narandzasto, inace
+		%se koristi tekuca boja		
+		if_then_else { Tz - branch_length_decrease < branch_length_limit}
+		{color 149 69 53} {color color_R color_G color_B}
+		
+		%iscrtavanje grana		
+		drawsegment A A2		
+		drawsegment A A3
+		drawsegment A A4
+		drawsegment A A5
+		
+		%PODESAVANJE NOVIH PARAMETARA
+		%smanjenje duzine grane
+		expression Tz {Tz - branch_length_decrease}
+		%ugao grananja
+		expression branching_angle { branching_angle - branching_angle_decrease}
+		if_then_else { branching_angle < branching_angle_limit }
+		{ expression branching_angle { branching_angle_limit } } {}
+		%debljina linije
+		expression line_thickness { line_thickness - line_thickness_decrease}
+		if_then_else { line_thickness < line_thickness_limit }
+		{ expression line_thickness { line_thickness_limit } } {}
+		%boje
+		expression color_R { color_R  + color_increase }
+		expression color_G { color_G + color_increase }
+		expression color_B { color_B + color_increase }
+		if_then_else { color_R > ending_color_R }
+		{ expression color_R { ending_color_R } } {}
+		if_then_else { color_G > ending_color_G }
+		{ expression color_G { ending_color_G } } {}
+		if_then_else { color_B > ending_color_B }
+		{ expression color_B { ending_color_B } } {}
+		
+		%podesavanje nove vrednosti ugla nakrivljenja za tacke A3 i A5
+		expression skewness_angle {skewness_angle - skewness_angle_change}
+		
+		%REK POZIV ZA SVAKU DOBIJENU TACKU (A2, A3, A4 i A5 )
+		call tree { A3 Tz branch_length_decrease C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+		call tree { A5 Tz branch_length_decrease C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+		
+		%podesavanje nove vrednosti ugla nakrivljenja za tacke A2 i A4
+		expression skewness_angle {skewness_angle + 2*skewness_angle_change}
+		
+		call tree { A2 Tz branch_length_decrease C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+		call tree { A4 Tz branch_length_decrease C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+		
+		%VRACANJE VREDNOSTI PARAMETARA		
+		%duzina grane
+		expression Tz {Tz + branch_length_decrease}
+		%ugao grananja
+		expression branching_angle { branching_angle + branching_angle_decrease}
+		%debljina linije
+		expression line_thickness { line_thickness + line_thickness_decrease}
+		%boje
+		expression color_R { color_R  - color_increase }
+		expression color_G { color_G - color_increase }
+		expression color_B { color_B - color_increase }
+		%nakrivljenje
+		expression skewness_angle {skewness_angle - skewness_angle_change}	
+	}
+}
+%------------------ Postavljnje 3D scene -------------------------------------%
+dim 190 120
+ang3d_picture -10 -10  200 200
+background 0 0 0
+
+%dinamicka tacka za rotaciju kamere
+point A 0.4 0 25.9 0
+getx x A
+ang3d_origin 95 30 x 0.35
+
+ang3d_unit 1.5 
+ang3d_axes_drawing_range -20 20 -20 20 -20 20
+%ang3d_drawsystem_p 3 4 4 4 1 2
+ang3d_scale 1 1 1
+%----------------- Pocetni parametri -----------------------------------------%
+%pocetna duzina grane 
+number Tz 17.2
+number branch_length_decrease 4.2
+%poluprecnik krugova na listovima (vektor C1->C2) (NE KORISTI SE)
+ang3d_point C1 0 0 0
+ang3d_point C2 0 0 0.5
+%ostali parametri
+number branch_length_limit 4
+%number branching_angle 20    (definisan ispod kao dinamicki parametar)
+number branching_angle_decrease 0.3
+number branching_angle_limit 8
+number line_thickness  1
+number line_thickness_decrease 0.03
+number line_thickness_limit 0.2
+number color_R 50
+number color_G 20
+number color_B 10
+number ending_color_R 150
+number ending_color_G 90
+number ending_color_B 60
+number color_increase 5
+%--------------------------------------------------------------------------------------%
+ang3d_point O 0 0 0
+ang3d_point root 0 0 10
+
+%crtanje tla (postolja)
+call draw_ground {}
+
+%crtanje stabla drveta
+color color_R color_G color_B
+linethickness line_thickness
+drawsegment O root
+
+%ugao nakrivljenja
+point skewness_point 5 0 10 0
+getx skewness_angle_change skewness_point
+number skewness_angle 0
+
+%ugao grananja
+point branching_angle_point 10 0 40 0
+getx branching_angle branching_angle_point
+
+call tree { root Tz branch_length_decrease C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+
+animation_frames 250 60
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

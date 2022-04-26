@@ -1,0 +1,178 @@
+procedure tree { A T1 T2 P1 P2 C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+{
+	%provera trenutne duzine grane
+	%ako je manja od zadate granice naisao je list,
+	%u suprotnom je naisao unutrasnji cvor
+	gety curr_branch_length T2
+	if_then_else { curr_branch_length < branch_length_limit }
+	{	
+		%crtanje krugova oko cvorova koji su listovi
+		translate C C1 C2 A
+		circle L A C
+		color 255 255 255
+		drawcircle L
+	}
+	{
+		%formiranje tacke A1 koja je iznad A za duzinu grane
+		translate A1 T1 T2 A
+		%zakrivljenje tacke A1 za ugao nakrivljenja
+		rotate A1 A skewness_angle A1
+		%formiranje novih tacaka rotacijom (zakrivljenje) A1 za ugao grananja
+		rotate A2 A branching_angle A1
+		expression u1 { (-1)*branching_angle }
+		rotate A3 A u1 A1
+		
+		%podesavanje parametara za iscrtavanje			
+		linethickness line_thickness
+		color color_R color_G color_B
+		
+		%iscrtavanje grana
+		drawsegment A A2
+		drawsegment A A3
+		
+		
+		%PODESAVANJE NOVIH PARAMETARA
+		
+		%smanjenje duzine grane
+		translate T2 P2 P1 T2
+	
+		%ugao grananja
+		expression branching_angle { 
+			branching_angle - branching_angle_decrease
+		}
+		if_then_else { branching_angle < branching_angle_limit }
+		{ 
+			expression branching_angle { branching_angle_limit } 
+		} {}
+		
+		%debljina linije
+		expression line_thickness { 
+			line_thickness - line_thickness_decrease
+		}
+		if_then_else { line_thickness < line_thickness_limit }
+		{ 
+			expression line_thickness { line_thickness_limit } 
+		} {}
+		
+		%boje
+		expression color_R { color_R  + color_increase }
+		expression color_G { color_G + color_increase }
+		expression color_B { color_B + color_increase }
+		if_then_else { color_R > ending_color_R }
+		{ 
+			expression color_R { ending_color_R } 
+		} {}
+		if_then_else { color_G > ending_color_G }
+		{ 
+			expression color_G { ending_color_G } 
+		} {}
+		if_then_else { color_B > ending_color_B }
+		{ 
+			expression color_B { ending_color_B } 
+		} {}
+		
+		%podesavanje ugla nakrivljenja za desnog sina
+		expression skewness_angle {
+			skewness_angle - skewness_angle_change
+		}
+		
+		%REK POZIV ZA DESNOG SINA
+		call tree { A3 T1 T2 P1 P2 C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+		
+		%podesavanje ugla nakrivljenja za levog sina
+		expression skewness_angle {
+			skewness_angle + 2*skewness_angle_change
+		}
+		
+		% REK POZIV ZA LEVOG SINA
+		call tree { A2 T1 T2 P1 P2 C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+		
+       		%VRACAMO VREDNOSTI PARAMETARA
+
+        		%duzina grane
+		translate T2 P1 P2 T2
+        
+		%ugao grananja
+		expression branching_angle { 
+			branching_angle + branching_angle_decrease
+		}
+
+		%debljina linije
+		expression line_thickness { 
+			line_thickness + line_thickness_decrease
+		}
+
+		%boje
+		expression color_R { color_R  - color_increase }
+		expression color_G { color_G - color_increase }
+		expression color_B { color_B - color_increase }
+
+		%nakrivljenje
+		expression skewness_angle {
+			skewness_angle - skewness_angle_change
+		}	
+	}
+}
+%---------------------------------------------------------------------------------------%
+
+dim 190 120
+background 0 0 0
+
+%----------------- Pocetni parametri -----------------------------------------%
+%pocetna duzina grane (vektor T1->T2)
+point T1 0 0
+point T2 0 17.2
+%smanjenje duzine grane (vektor P2->P1)
+point P1 0 0
+point P2 0 1.5
+%poluprecnik kruga oko listova (vektor C1->C2)
+point C1 0 0
+point C2 0 0.5
+
+%ostali parametri
+number branch_length_limit 4
+number branching_angle 20
+number branching_angle_decrease 0.3
+number branching_angle_limit 10
+number line_thickness  0.5
+number line_thickness_decrease 0.03
+number line_thickness_limit 0.2
+number color_R 50
+number color_G 20
+number color_B 10
+number ending_color_R 150
+number ending_color_G 90
+number ending_color_B 60
+number color_increase 5
+%--------------------------------------------------------------------------------------%
+
+%pocetne tacke
+point O 95 0 
+point root 95 10
+
+%iscrtavanje stabla drveta
+linethickness 0.5
+color 50 20 12
+drawsegment O root 
+
+%ugao nakrivljenja (dinamicka tacka)
+point skewness_point -40 0 20 0
+getx skewness_angle_change skewness_point
+number skewness_angle 0
+
+call tree { root T1 T2 P1 P2 C1 C2 branch_length_limit branching_angle branching_angle_decrease branching_angle_limit skewness_angle skewness_angle_change line_thickness line_thickness_decrease line_thickness_limit color_R color_G color_B ending_color_R ending_color_G ending_color_B color_increase }
+
+animation_frames 300 60
+
+
+
+
+
+
+
+
+
+
+
+
+
