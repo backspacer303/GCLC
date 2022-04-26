@@ -3,8 +3,8 @@ Projekat u okviru kursa Geometrijski algoritmi, Matematički fakultet, Univerzit
 
 Implementacija stabla rekurzije u [GCLC](http://poincare.matf.bg.ac.rs/~janicic//gclc/) alatu.
 
-## 3D Drvo
+## 3D Stablo
 ![3D](https://github.com/backspacer303/GCLC/blob/main/Screenshots/RecTree3D.gif)
 
-## 2D Drvo
+## 2D Stablo
 ![2D](https://github.com/backspacer303/GCLC/blob/main/Screenshots/RecTree2D.gif)
